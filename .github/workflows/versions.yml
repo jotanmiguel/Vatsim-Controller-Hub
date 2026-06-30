@@ -1,0 +1,2 @@
+- name: Git Automatic Semantic Versioning
+  uses: bitshifted/git-auto-semver@v2.0.11
