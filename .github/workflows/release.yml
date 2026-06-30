@@ -1,0 +1,55 @@
+name: Build & Release Python EXE
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install pyinstaller
+          pip install -r requirements.txt
+
+      - name: Auto semantic version
+        id: semver
+        uses: bitshifted/git-auto-semver@v1.1.0
+        with:
+          main_branch: main
+          initial_version: 0.1.0
+          create_tag: true
+          tag_prefix: v
+
+      - name: Build EXE with PyInstaller
+        run: |
+          pyinstaller --onefile main.py
+          dir dist
+
+      - name: Rename artifact
+        run: |
+          mkdir release
+          copy dist\main.exe release\myapp-${{ steps.semver.outputs.semver }}.exe
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.semver.outputs.tag }}
+          name: Release ${{ steps.semver.outputs.semver }}
+          files: release/*
