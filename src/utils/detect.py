@@ -195,25 +195,6 @@ class ProgramDetector:
 
         return None
 
-    def search_disk(self, program_name: str) -> Optional[str]:
-        """Searches all fixed drives for a matching executable."""
-        program_name_lower = program_name.lower()
-        executables = self.program_executables.get(program_name_lower, [f"{program_name}.exe"])
-
-        for base_path in self.fixed_drive_roots:
-            if not base_path.exists():
-                continue
-
-            try:
-                for exe_name in executables:
-                    print(f"DEBUG: Searching {base_path} for {exe_name}...")
-                    for exe_path in base_path.rglob(exe_name):
-                        if exe_path.is_file() and "uninstall" not in exe_path.name.lower():
-                            return str(exe_path)
-            except OSError:
-                continue
-
-        return None
 
     def open_file_dialog(self, program_name: str) -> Optional[str]:
         """Opens a file dialog for the user to select the program executable."""
