@@ -1,0 +1,17 @@
+{
+  "euroscope": {
+    "path": "C:\\Caminho\\Para\\Euroscope\\euroscope.exe",
+    "via": "Manual",
+    "timestamp": "2026-01-01T00:00:00+00:00"
+  },
+  "trackaudio": {
+    "path": "C:\\Caminho\\Para\\TrackAudio\\trackaudio.exe",
+    "via": "Registry",
+    "timestamp": "2026-01-01T00:00:00+00:00"
+  },
+  "vacs": {
+    "path": "C:\\Caminho\\Para\\VACS\\vacs-client.exe",
+    "via": "Registry",
+    "timestamp": "2026-01-01T00:00:00+00:00"
+  }
+}
