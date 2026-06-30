@@ -18,11 +18,12 @@ jobs:
       tag: ${{ steps.semver.outputs.tag }}
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Generate semantic version
+      - name: Generate semantic version + tag
         id: semver
         uses: bitshifted/git-auto-semver@v1.1.0
         with:
@@ -37,12 +38,12 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - name: Checkout repository (WITH TAGS)
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Fetch tags explicitly
+      - name: Ensure tags are available
         run: git fetch --tags
 
       - name: Setup Python
@@ -52,6 +53,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          python -m pip install --upgrade pip
           pip install -r src/requirements.txt
           pip install pyinstaller
 
@@ -59,7 +61,7 @@ jobs:
         run: |
           pyinstaller --onefile src/main.py
 
-      - name: Prepare release artifact
+      - name: Prepare release folder
         run: |
           mkdir release
           copy dist\main.exe release\MyApp-${{ needs.version.outputs.version }}.exe
