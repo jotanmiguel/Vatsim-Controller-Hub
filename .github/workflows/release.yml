@@ -14,8 +14,8 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      version: ${{ steps.semver.outputs.semver }}
-      tag: ${{ steps.semver.outputs.tag }}
+      version: ${{ steps.semver.outputs.version-string }}
+      tag: v${{ steps.semver.outputs.version-string }}
 
     steps:
       - name: Checkout repository
