@@ -2,29 +2,48 @@ name: Build & Release
 
 on:
   push:
-    tags:
-      - "v*"
+    branches:
+      - main
 
 permissions:
   contents: write
 
 jobs:
+  version:
+    runs-on: ubuntu-latest
+
+    outputs:
+      version: ${{ steps.semver.outputs.version-string }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate version + create tag
+        id: semver
+        uses: bitshifted/git-auto-semver@v1.1.0
+        with:
+          main_branch: main
+          initial_version: 0.1.0
+          create_tag: true
+          tag_prefix: "v"
+
   build:
-    name: Build Windows EXE
+    needs: version
     runs-on: windows-latest
 
     steps:
-      - name: Checkout tag
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Extract version
-        id: version
         shell: bash
         run: |
-          VERSION=${GITHUB_REF_NAME#v}
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          VERSION=${{ needs.version.outputs.version }}
           echo "__version__ = \"$VERSION\"" > src/version.py
 
       - name: Setup Python
@@ -42,16 +61,16 @@ jobs:
         run: |
           pyinstaller --onefile --name ControllerHub src/main.py
 
-      - name: Prepare release file
+      - name: Prepare release
         shell: pwsh
         run: |
           mkdir release
-          Copy-Item dist\ControllerHub.exe release\ControllerHub-${{ steps.version.outputs.version }}.exe
+          copy dist\ControllerHub.exe release\ControllerHub-${{ needs.version.outputs.version }}.exe
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
-          name: Release ${{ steps.version.outputs.version }}
+          tag_name: v${{ needs.version.outputs.version }}
+          name: Release ${{ needs.version.outputs.version }}
           generate_release_notes: true
           files: release/*
