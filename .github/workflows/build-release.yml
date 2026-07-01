@@ -18,13 +18,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Get latest tag and bump version
+      - name: Get latest version + create new tag
         id: version
         shell: bash
         run: |
           git fetch --tags
 
-          # Get latest tag (fallback to 0.1.0)
+          # Get latest tag or fallback
           LATEST_TAG=$(git tag --sort=-v:refname | head -n 1)
 
           if [ -z "$LATEST_TAG" ]; then
@@ -32,7 +32,6 @@ jobs:
           else
             VERSION=${LATEST_TAG#v}
 
-            # simple patch bump
             IFS='.' read -r major minor patch <<< "$VERSION"
             patch=$((patch + 1))
             VERSION="$major.$minor.$patch"
@@ -40,13 +39,13 @@ jobs:
 
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-          # create tag
+          # Create tag
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git tag "v$VERSION"
           git push origin "v$VERSION"
 
-      - name: Write version file
+      - name: Write version file into src/
         shell: bash
         run: |
           echo "__version__ = \"${{ steps.version.outputs.version }}\"" > src/version.py
@@ -66,7 +65,7 @@ jobs:
         run: |
           pyinstaller --onefile --name ControllerHub src/main.py
 
-      - name: Prepare release
+      - name: Prepare release file
         shell: pwsh
         run: |
           mkdir release
