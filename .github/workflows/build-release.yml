@@ -18,13 +18,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Debug version
-        shell: bash
-        run: |
-          echo "LATEST_TAG=$LATEST_TAG"
-          echo "VERSION=$VERSION"
-          git tag --sort=-v:refname | head -n 10
-
       - name: Get latest version + create new tag
         id: version
         shell: bash
@@ -51,12 +44,10 @@ jobs:
           git config user.email "github-actions@github.com"
           git tag "v$VERSION"
           git push origin "v$VERSION"
-
-      - name: Write version file into src/
-        shell: bash
-        run: |
-          echo "__version__ = \"${{ steps.version.outputs.version }}\"" > src/version.py
-
+        
+      - name: Set version env
+        run: echo "APP_VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_ENV
+      
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
