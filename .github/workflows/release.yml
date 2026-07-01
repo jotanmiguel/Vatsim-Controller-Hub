@@ -9,8 +9,11 @@ permissions:
   contents: write
 
 jobs:
-  build:
-    runs-on: windows-latest
+  version:
+    runs-on: ubuntu-latest
+
+    outputs:
+      version: ${{ steps.semver.outputs.version-string }}
 
     steps:
       - name: Checkout repository
@@ -27,11 +30,20 @@ jobs:
           create_tag: true
           tag_prefix: "v"
 
+  build:
+    needs: version
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Extract version
         shell: bash
         run: |
-          VERSION=${{ steps.semver.outputs.version-string }}
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          VERSION=${{ needs.version.outputs.version }}
           echo "__version__ = \"$VERSION\"" > src/version.py
 
       - name: Setup Python
@@ -53,12 +65,12 @@ jobs:
         shell: pwsh
         run: |
           mkdir release
-          copy dist\ControllerHub.exe release\ControllerHub-${{ steps.semver.outputs.version-string }}.exe
+          copy dist\ControllerHub.exe release\ControllerHub-${{ needs.version.outputs.version }}.exe
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.semver.outputs.version-string }}
-          name: Release ${{ steps.semver.outputs.version-string }}
+          tag_name: v${{ needs.version.outputs.version }}
+          name: Release ${{ needs.version.outputs.version }}
           generate_release_notes: true
           files: release/*
