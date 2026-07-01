@@ -1,4 +1,3 @@
-import ctypes
 import os
 import winreg
 from pathlib import Path
@@ -6,6 +5,7 @@ from typing import Optional
 
 import tkinter as tk
 from tkinter import filedialog
+from logger import logger
 
 
 class ProgramDetector:
@@ -23,44 +23,23 @@ class ProgramDetector:
             "trackaudio": ["trackaudio.exe", "TrackAudio.exe"],
             "vacs": ["VACS.exe", "vacs-client.exe"],
         }
-        self.fixed_drive_roots = self._get_fixed_drive_roots()
-
-    @staticmethod
-    def _get_fixed_drive_roots():
-        """Returns all fixed local drive roots on Windows."""
-        roots = []
-        try:
-            bitmask = ctypes.windll.kernel32.GetLogicalDrives()
-            get_drive_type = ctypes.windll.kernel32.GetDriveTypeW
-            get_drive_type.argtypes = [ctypes.c_wchar_p]
-            get_drive_type.restype = ctypes.c_uint
-
-            for index in range(26):
-                if bitmask & (1 << index):
-                    drive = f"{chr(65 + index)}:/"
-                    if get_drive_type(drive) == 3:
-                        roots.append(Path(drive))
-        except OSError:
-            pass
-
-        return roots
 
     def detect(self, program_name: str) -> Optional[str]:
         """Detects a program using registry, common paths, and finally a file picker."""
         result = self.registry(program_name)
         if result:
-            print(f"DEBUG: ✓ Found {program_name} via registry: {result}")
+            logger.info(f"INFO: Found {program_name} via registry: {result}")
             return result
 
         result = self.common_paths(program_name)
         if result:
-            print(f"DEBUG: ✓ Found {program_name} in common paths: {result}")
+            logger.info(f"INFO: Found {program_name} in common paths: {result}")
             return result
 
-        print(f"DEBUG: Could not find {program_name} automatically. Please select the executable.")
+        logger.info(f"INFO: Could not find {program_name} automatically. Please select the executable.")
         result = self.open_file_dialog(program_name)
         if result:
-            print(f"DEBUG: ✓ User selected {program_name}: {result}")
+            logger.info(f"INFO: User selected {program_name}: {result}")
             return result
 
         return None
@@ -76,6 +55,7 @@ class ProgramDetector:
         ]
 
         for hive, path in uninstall_paths:
+            logger.debug(f"DEBUG: Searching registry hive {hive} at path {path} for {program_name}")
             try:
                 with winreg.OpenKey(hive, path) as key:
                     count = winreg.QueryInfoKey(key)[0]
@@ -110,10 +90,13 @@ class ProgramDetector:
                                         if parent_dir:
                                             exe_path = self._find_executable_in_dir(parent_dir, program_name)
                                             if exe_path:
+                                                logger.info(f"Found {program_name} via UninstallString Registry: {exe_path}")
                                                 return exe_path
                         except PermissionError:
+                            logger.debug(f"DEBUG: Permission denied when accessing registry key for {program_name}")
                             continue
             except FileNotFoundError:
+                logger.debug(f"DEBUG: Registry uninstall path not found for {program_name} in hive {hive}")
                 continue
 
         app_paths_roots = [
@@ -138,10 +121,13 @@ class ProgramDetector:
                                 if app_dir:
                                     exe_path = self._find_executable_in_dir(app_dir, program_name)
                                     if exe_path:
+                                        logger.info(f"Found {program_name} via App Paths Registry: {exe_path}")
                                         return exe_path
                     except FileNotFoundError:
+                        logger.debug(f"DEBUG: File not found in registry for {program_name}")
                         continue
                     except PermissionError:
+                        logger.debug(f"DEBUG: Permission denied when accessing registry key for {program_name}")
                         continue
 
         # Installer\Folders often contains the install root directly
@@ -164,16 +150,20 @@ class ProgramDetector:
 
                             exe_path = self._find_executable_in_dir(candidate, program_name)
                             if exe_path:
+                                logger.info(f"Found {program_name} via Installer\\Folders Registry: {exe_path}")
                                 return exe_path
                     except OSError:
+                        logger.debug(f"DEBUG: OSError occurred while searching registry for {program_name}")
                         continue
         except FileNotFoundError:
             pass
-
+        
+        logger.debug(f"DEBUG: Could not find {program_name} in registry.")
         return None
 
     def common_paths(self, program_name: str) -> Optional[str]:
         """Searches common installation directories."""
+        logger.debug(f"DEBUG: Searching common paths for {program_name}")
         program_name_lower = program_name.lower()
         executables = self.program_executables.get(program_name_lower, [f"{program_name}.exe"])
 
@@ -191,14 +181,16 @@ class ProgramDetector:
                         if exe_path.is_file() and "uninstall" not in exe_path.name.lower():
                             return str(exe_path)
             except OSError:
+                logger.debug(f"DEBUG: OSError occurred while searching common paths for {program_name}")
                 continue
 
+        logger.info(f"INFO: Could not find {program_name} in common paths.")
         return None
 
 
     def open_file_dialog(self, program_name: str) -> Optional[str]:
         """Opens a file dialog for the user to select the program executable."""
-        print(f"Please select the {program_name} executable manually.")
+        logger.info(f"INFO: Please select the {program_name} executable manually.")
 
         root = tk.Tk()
         root.withdraw()
@@ -208,6 +200,7 @@ class ProgramDetector:
         )
         root.destroy()
 
+        logger.debug(f"DEBUG: User selected file path: {file_path}")
         return file_path if file_path else None
 
     @staticmethod
@@ -269,6 +262,7 @@ class ProgramDetector:
                 if exe_files:
                     return str(exe_files[0])
         except OSError:
+            logger.debug(f"DEBUG: OSError occurred while searching common paths for {program_name}")
             pass
 
         return None
