@@ -1,0 +1,18 @@
+{
+  "version": "1.0.0",
+  "euroscope": {
+    "path": "D:\\Jogos\\MSFS20\\Programas\\Euroscope\\euroscope.exe",
+    "via": "Registry",
+    "timestamp": "2026-06-30T21:36:58.660307+00:00"
+  },
+  "trackaudio": {
+    "path": "C:\\Users\\Joao\\AppData\\Local\\Programs\\trackaudio\\trackaudio.exe",
+    "via": "Registry",
+    "timestamp": "2026-06-30T21:36:58.660848+00:00"
+  },
+  "vacs": {
+    "path": "D:\\Jogos\\MSFS20\\Programas\\vacs\\vacs-client.exe",
+    "via": "Registry",
+    "timestamp": "2026-06-30T21:36:58.662113+00:00"
+  }
+}
