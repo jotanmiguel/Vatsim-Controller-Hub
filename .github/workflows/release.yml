@@ -64,7 +64,7 @@ jobs:
       - name: Prepare release folder
         run: |
           mkdir release
-          copy dist\main.exe release\MyApp-${{ needs.version.outputs.version }}.exe
+          copy dist\main.exe release\ControllerHub-${{ needs.version.outputs.version }}.exe
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
