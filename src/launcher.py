@@ -15,7 +15,6 @@ APP_SPECS = [
 
 def is_valid_exe(path):
     logger.debug(f"DEBUG: Checking if path is valid exe: {path}")
-    logger.debug(f"DEBUG: Path exists: {os.path.exists(path)}")
     return bool(path) and os.path.isfile(path) and path.lower().endswith(".exe")
 
 
