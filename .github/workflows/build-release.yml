@@ -9,29 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  version:
-    runs-on: ubuntu-latest
-
-    outputs:
-      version: ${{ steps.semver.outputs.version-string }}
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Generate version + create tag
-        id: semver
-        uses: bitshifted/git-auto-semver@v1.1.0
-        with:
-          main_branch: main
-          initial_version: 0.1.0
-          create_tag: true
-          tag_prefix: "v"
-
   build:
-    needs: version
     runs-on: windows-latest
 
     steps:
@@ -40,11 +18,38 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Extract version
+      - name: Get latest tag and bump version
+        id: version
         shell: bash
         run: |
-          VERSION=${{ needs.version.outputs.version }}
-          echo "__version__ = \"$VERSION\"" > src/version.py
+          git fetch --tags
+
+          # Get latest tag (fallback to 0.1.0)
+          LATEST_TAG=$(git tag --sort=-v:refname | head -n 1)
+
+          if [ -z "$LATEST_TAG" ]; then
+            VERSION="0.1.0"
+          else
+            VERSION=${LATEST_TAG#v}
+
+            # simple patch bump
+            IFS='.' read -r major minor patch <<< "$VERSION"
+            patch=$((patch + 1))
+            VERSION="$major.$minor.$patch"
+          fi
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+          # create tag
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git tag "v$VERSION"
+          git push origin "v$VERSION"
+
+      - name: Write version file
+        shell: bash
+        run: |
+          echo "__version__ = \"${{ steps.version.outputs.version }}\"" > src/version.py
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -65,12 +70,12 @@ jobs:
         shell: pwsh
         run: |
           mkdir release
-          copy dist\ControllerHub.exe release\ControllerHub-${{ needs.version.outputs.version }}.exe
+          copy dist\ControllerHub.exe release\ControllerHub-${{ steps.version.outputs.version }}.exe
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ needs.version.outputs.version }}
-          name: Release ${{ needs.version.outputs.version }}
+          tag_name: v${{ steps.version.outputs.version }}
+          name: Release ${{ steps.version.outputs.version }}
           generate_release_notes: true
           files: release/*
