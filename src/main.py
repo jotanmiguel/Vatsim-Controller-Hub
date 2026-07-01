@@ -1,9 +1,12 @@
+import os
 from launcher import launch_all
 from logger import logger
-from utils.version import get_version
+
+VERSION = os.getenv("APP_VERSION", "dev")
+
 
 if __name__ == "__main__":
-    logger.info(f"ControllerHub - VATSIM Controller Hub Launcher ({get_version()})")
+    logger.info(f"ControllerHub - VATSIM Controller Hub Launcher ({VERSION})")
     logger.info("Starting application launcher...")
     # Check if all apps launched successfully. Later change this to a more user-friendly message or GUI. 
     # Use try-except to catch any unexpected errors and print them.
