@@ -44,10 +44,10 @@ jobs:
           git tag "v$VERSION"
           git push origin "v$VERSION"
 
-      - name: Inject version into build
+      - name: Generate version.py
         shell: bash
         run: |
-          echo "VERSION = \"${{ steps.version.outputs.version }}\"" > version.py
+          echo "VERSION = '${{ steps.version.outputs.version }}'" > src/version.py
 
       - name: Setup Python
         uses: actions/setup-python@v5
