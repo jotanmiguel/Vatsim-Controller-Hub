@@ -1,9 +1,15 @@
 import json
 from datetime import datetime, timezone
 from pathlib import Path
-
 from logger import logger
-from utils.version import get_version
+
+try:
+    from utils.version import get_version
+except ImportError:
+    from utils.version import VERSION
+
+    def get_version():
+        return VERSION
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent

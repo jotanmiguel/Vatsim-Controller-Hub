@@ -1,6 +1,11 @@
-CURRENT_VERSION = "1.0.0"
+import sys
+
+
+VERSION = "dev"
 
 
 def get_version():
-    """Returns the current version of the application."""
-    return CURRENT_VERSION
+	"""Returns dev for source runs and the embedded version for frozen binaries."""
+	if getattr(sys, "frozen", False):
+		return VERSION
+	return "dev"

@@ -1,7 +1,6 @@
 import os
 import subprocess
 import sys
-
 from utils.detect import ProgramDetector
 from utils.settings import SETTINGS_PATH, build_entry, load_settings, normalize_settings, save_settings
 from logger import logger
@@ -81,13 +80,13 @@ def ensure_setup():
         if detected_path:
             settings[setting_key] = build_entry(detected_path, via)
             updated = True
-            print(f"SETUP: {display_name} -> {detected_path} ({via})")
+            logger.info(f"{display_name} -> {detected_path} ({via})")
         else:
-            print(f"SETUP: {display_name} not found automatically")
+            logger.info(f"{display_name} not found automatically")
 
     if updated or not SETTINGS_PATH.exists():
         save_settings(settings)
-        print(f"SETUP: saved to {SETTINGS_PATH}")
+        logger.info(f"Settings file updated at {SETTINGS_PATH}")
 
     return settings
 

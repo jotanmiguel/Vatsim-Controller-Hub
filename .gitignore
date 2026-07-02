@@ -34,7 +34,12 @@ Thumbs.db
 
 # Sentry
 .sentry-native/
+.sentry-native/*
 src/euroscope_sector_providers.txt
 src/SectorFileProviderDescriptor.txt
 src/version.txt
 src/config/config.json
+src/.sentry-native/settings.dat
+/src/.sentry-native
+src/.sentry-native/settings.dat
+src/.sentry-native/settings.dat
