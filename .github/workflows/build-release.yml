@@ -45,9 +45,10 @@ jobs:
           git push origin "v$VERSION"
 
       - name: Generate version.py
-        shell: bash
+        shell: pwsh
         run: |
-          echo "VERSION = '${{ steps.version.outputs.version }}'" > src/version.py
+          "VERSION = '${{ steps.version.outputs.version }}'" | Out-File -FilePath src/version.py -Encoding utf8
+          Get-Content src/version.py
 
       - name: Setup Python
         uses: actions/setup-python@v5
