@@ -1,8 +1,7 @@
 import os
 from launcher import launch_all
 from logger import logger
-
-VERSION = os.getenv("APP_VERSION", "dev")
+from version import VERSION
 
 
 if __name__ == "__main__":
